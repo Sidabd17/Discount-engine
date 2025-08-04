@@ -1,6 +1,10 @@
 const fs = require("fs");
 
-const data = JSON.parse(fs.readFileSync("input.json", "utf-8"));
+const args = process.argv.slice(2);
+const inputFile = args[0] || "input.json";  // agar user ne pass nahi kiya toh default
+const outputFile = args[1] || null;
+
+const data = JSON.parse(fs.readFileSync(inputFile, "utf-8"));
 const salesAgents = data.salesAgents;
 let totalDiscount = data.siteKitty;
 
@@ -119,4 +123,11 @@ const finalOutput = {
     })
 };
 
-console.log(JSON.stringify(finalOutput, null, 2));
+if (outputFile) {
+  fs.writeFileSync(outputFile, JSON.stringify(finalOutput, null, 2));
+  console.log(`✅ Allocation saved to ${outputFile}`);
+} else {
+  console.log(JSON.stringify(finalOutput, null, 2));
+}
+
+

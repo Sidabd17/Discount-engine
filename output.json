@@ -1,0 +1,24 @@
+{
+  "allocations": [
+    {
+      "id": "A1",
+      "assignedDiscount": 2947,
+      "justification": "Consistently high performance and long-term contribution"
+    },
+    {
+      "id": "A2",
+      "assignedDiscount": 1987,
+      "justification": "Consistently high performance and strong target achievement"
+    },
+    {
+      "id": "A3",
+      "assignedDiscount": 2649,
+      "justification": "Consistently high performance and long-term contribution"
+    },
+    {
+      "id": "A4",
+      "assignedDiscount": 2417,
+      "justification": "Consistently high performance and strong target achievement"
+    }
+  ]
+}
