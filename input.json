@@ -17,16 +17,16 @@
     },
     {
       "id": "A3",
-      "performanceScore": 70,
+      "performanceScore": 90,
       "seniorityMonths": 16,
       "targetAchievedPercent": 80,
       "activeClients": 10
     },
     {
       "id": "A4",
-      "performanceScore": 75,
+      "performanceScore": 85,
       "seniorityMonths": 10,
-      "targetAchievedPercent": 85,
+      "targetAchievedPercent": 75,
       "activeClients": 12
     }
   ]

@@ -1,55 +1,109 @@
 const fs = require("fs");
 
-const data = JSON.parse(fs.readFileSync("input.json" , "utf-8"));
-// console.log(data);
-
-let maxSeniorityMonths = 1;
-let maxActiveClients = 1;
-
+const data = JSON.parse(fs.readFileSync("input.json", "utf-8"));
 const salesAgents = data.salesAgents;
-for(const agent of salesAgents){
+let totalDiscount = data.siteKitty;
+
+// optional min/max config
+const minPerAgent = data.minPerAgent || 0.05;
+const maxPerAgent = data.maxPerAgent || Infinity;
+
+// step 1: max values nikal lo (normalization ke liye)
+let maxSeniorityMonths = 0;
+let maxActiveClients = 0;
+
+for (const agent of salesAgents) {
     maxSeniorityMonths = Math.max(maxSeniorityMonths, agent.seniorityMonths);
     maxActiveClients = Math.max(maxActiveClients, agent.activeClients);
 }
 
-console.log("Max Seniority Months:", maxSeniorityMonths);
-console.log("Max Active Clients:", maxActiveClients);
-
-const normaliseSalesAgentsData = (agent) =>{
+// step 2: normalize function
+const normaliseSalesAgentsData = (agent) => {
     return {
         id: agent.id,
         performanceScore: agent.performanceScore / 100,
-        seniorityMonths: Math.round(agent.seniorityMonths / maxSeniorityMonths * 100) / 100,
+        seniorityMonths: agent.seniorityMonths / (maxSeniorityMonths || 1),
         targetAchievedPercent: agent.targetAchievedPercent / 100,
-        activeClients: Math.round(agent.activeClients / maxActiveClients * 100) / 100
+        activeClients: agent.activeClients / (maxActiveClients || 1)
     };
-}
+};
 
-const normalisedSalesAgentsDataList = salesAgents.map(agent=> normaliseSalesAgentsData(agent));
-console.log(normalisedSalesAgentsDataList);
+const normalisedSalesAgentsDataList = salesAgents.map(agent => normaliseSalesAgentsData(agent));
 
+// step 3: score nikalne ka function
 const individualScores = (agent) => {
+    const score = 
+        0.3 * agent.performanceScore +
+        0.3 * agent.seniorityMonths +
+        0.2 * agent.targetAchievedPercent +
+        0.2 * agent.activeClients;
+
     return {
-        id : agent.id,
-        score : Math.round((0.4 * agent.performanceScore + 0.3 * agent.seniorityMonths + 0.2 * agent.targetAchievedPercent + 0.1 * agent.activeClients) * 100) / 100
-    }
-}
+        id: agent.id,
+        score: Math.round(score * 100) / 100
+    };
+};
 
 const individualScoresList = normalisedSalesAgentsDataList.map(agent => individualScores(agent));
-console.log(individualScoresList);
 
+// step 4: total score nikal lo
 let totalScore = 0;
-for(const agent of individualScoresList){
+for (const agent of individualScoresList) {
     totalScore += agent.score;
 }
 
-const totalDiscount = data.siteKitty ;
+// step 5: justification function
+const getJustification = (agent) => {
+    const contributions = {
+        performance: 0.3 * agent.performanceScore,
+        seniority: 0.3 * agent.seniorityMonths,
+        target: 0.2 * agent.targetAchievedPercent,
+        clients: 0.2 * agent.activeClients
+    };
 
-const individualDiscounts = individualScoresList.map(agent => {
-    return{
-        id: agent.id,
-        discount: Math.round((agent.score / totalScore) * totalDiscount * 100) / 100
+    let topMetric = Object.entries(contributions).sort((a, b) => b[1] - a[1])[0][0];
+
+    if (topMetric === "performance") return "High performer";
+    if (topMetric === "seniority") return "Long-term loyalty";
+    if (topMetric === "target") return "Target achiever";
+    if (topMetric === "clients") return "Strong client base";
+    return "Balanced contribution";
+};
+
+// step 6: discounts allocate karo (simple loop + min/max + adjust totals)
+let individualDiscounts = [];
+for (const agent of individualScoresList) {
+    let rawAlloc = (agent.score / totalScore) * totalDiscount;
+    let finalDiscount;
+
+    if (rawAlloc < minPerAgent) {
+        finalDiscount = minPerAgent;
+    } else if (rawAlloc > maxPerAgent) {
+        finalDiscount = maxPerAgent;
+    } else {
+        finalDiscount = Math.round(rawAlloc);
     }
-})
 
-console.log(individualDiscounts);
+    // assign kar diya, ab totals update karo
+    totalDiscount -= finalDiscount;
+    totalScore -= agent.score;
+
+    individualDiscounts.push({
+        id: agent.id,
+        discount: finalDiscount
+    });
+}
+
+// step 7: final output
+const finalOutput = {
+    allocations: individualDiscounts.map(d => {
+        const agent = normalisedSalesAgentsDataList.find(a => a.id === d.id);
+        return {
+            id: d.id,
+            assignedDiscount: d.discount,
+            justification: getJustification(agent)
+        };
+    })
+};
+
+console.log(JSON.stringify(finalOutput, null, 2));
