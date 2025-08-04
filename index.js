@@ -55,20 +55,33 @@ for (const agent of individualScoresList) {
 // step 5: justification function
 const getJustification = (agent) => {
     const contributions = {
-        performance: 0.3 * agent.performanceScore,
+        performance: 0.4 * agent.performanceScore,
         seniority: 0.3 * agent.seniorityMonths,
         target: 0.2 * agent.targetAchievedPercent,
-        clients: 0.2 * agent.activeClients
+        clients: 0.1 * agent.activeClients
     };
 
-    let topMetric = Object.entries(contributions).sort((a, b) => b[1] - a[1])[0][0];
+    // top 2 metrics nikal lo
+    const sorted = Object.entries(contributions).sort((a, b) => b[1] - a[1]);
+    const top1 = sorted[0][0];
+    const top2 = sorted[1] ? sorted[1][0] : null;
 
-    if (topMetric === "performance") return "High performer";
-    if (topMetric === "seniority") return "Long-term loyalty";
-    if (topMetric === "target") return "Target achiever";
-    if (topMetric === "clients") return "Strong client base";
-    return "Balanced contribution";
+    const phrases = {
+        performance: "high performance",
+        seniority: "long-term contribution",
+        target: "strong target achievement",
+        clients: "solid client base"
+    };
+
+    if (top1 && top2) {
+        return `Consistently ${phrases[top1]} and ${phrases[top2]}`;
+    } else if (top1) {
+        return `Consistently ${phrases[top1]}`;
+    } else {
+        return "Balanced contribution";
+    }
 };
+
 
 // step 6: discounts allocate karo (simple loop + min/max + adjust totals)
 let individualDiscounts = [];
