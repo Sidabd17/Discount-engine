@@ -3,7 +3,7 @@
     {
       "id": "A1",
       "assignedDiscount": 2947,
-      "justification": "Consistently high performance and long-term contribution"
+      "justification": "Consistently long-term contribution and high performance"
     },
     {
       "id": "A2",
@@ -18,7 +18,15 @@
     {
       "id": "A4",
       "assignedDiscount": 2417,
-      "justification": "Consistently high performance and strong target achievement"
+      "justification": "Consistently high performance and solid client base"
     }
-  ]
+  ],
+  "summary": {
+    "totalKitty": 10000,
+    "totalAllocated": 10000,
+    "remainingKitty": 0,
+    "averageDiscount": 2500,
+    "maxDiscount": 2947,
+    "minDiscount": 1987
+  }
 }

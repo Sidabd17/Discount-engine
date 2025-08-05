@@ -1,0 +1,8 @@
+{
+  "weights": {
+    "performance": 0.3,
+    "seniority": 0.3,
+    "target": 0.2,
+    "clients": 0.2
+  }
+}

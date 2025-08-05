@@ -8,9 +8,17 @@ const data = JSON.parse(fs.readFileSync(inputFile, "utf-8"));
 const salesAgents = data.salesAgents;
 let totalDiscount = data.siteKitty;
 
+const config = JSON.parse(fs.readFileSync("config.json", "utf-8"));
+const weights = config.weights;
+
+const performanceWeight = weights.performance;
+const seniorityWeight = weights.seniority;
+const targetWeight = weights.target;
+const clientsWeight = weights.clients;
+
 // optional min/max config
-const minPerAgent = data.minPerAgent || 0.05;
-const maxPerAgent = data.maxPerAgent || Infinity;
+const minPerAgent = data.minPerAgent || totalDiscount / (salesAgents.length * 2);
+const maxPerAgent = data.maxPerAgent || totalDiscount / 2.5;
 
 // step 1: max values nikal lo (normalization ke liye)
 let maxSeniorityMonths = 0;
@@ -37,10 +45,10 @@ const normalisedSalesAgentsDataList = salesAgents.map(agent => normaliseSalesAge
 // step 3: score nikalne ka function
 const individualScores = (agent) => {
     const score = 
-        0.3 * agent.performanceScore +
-        0.3 * agent.seniorityMonths +
-        0.2 * agent.targetAchievedPercent +
-        0.2 * agent.activeClients;
+        performanceWeight * agent.performanceScore +
+        seniorityWeight * agent.seniorityMonths +
+        targetWeight * agent.targetAchievedPercent +
+        clientsWeight * agent.activeClients;
 
     return {
         id: agent.id,
@@ -59,10 +67,10 @@ for (const agent of individualScoresList) {
 // step 5: justification function
 const getJustification = (agent) => {
     const contributions = {
-        performance: 0.4 * agent.performanceScore,
-        seniority: 0.3 * agent.seniorityMonths,
-        target: 0.2 * agent.targetAchievedPercent,
-        clients: 0.1 * agent.activeClients
+        performance: performanceWeight * agent.performanceScore,
+        seniority: seniorityWeight * agent.seniorityMonths,
+        target: targetWeight * agent.targetAchievedPercent,
+        clients: clientsWeight * agent.activeClients
     };
 
     // top 2 metrics nikal lo
@@ -89,8 +97,10 @@ const getJustification = (agent) => {
 
 // step 6: discounts allocate karo (simple loop + min/max + adjust totals)
 let individualDiscounts = [];
+let totalDiscountRemaining = totalDiscount;
+let totalAllocated = 0;
 for (const agent of individualScoresList) {
-    let rawAlloc = (agent.score / totalScore) * totalDiscount;
+    let rawAlloc = (agent.score / totalScore) * totalDiscountRemaining;
     let finalDiscount;
 
     if (rawAlloc < minPerAgent) {
@@ -102,14 +112,17 @@ for (const agent of individualScoresList) {
     }
 
     // assign kar diya, ab totals update karo
-    totalDiscount -= finalDiscount;
+    totalDiscountRemaining -= finalDiscount;
     totalScore -= agent.score;
+    totalAllocated += finalDiscount;
 
     individualDiscounts.push({
         id: agent.id,
         discount: finalDiscount
     });
 }
+
+const discounts = individualDiscounts.map(a => a.discount);
 
 // step 7: final output
 const finalOutput = {
@@ -120,7 +133,15 @@ const finalOutput = {
             assignedDiscount: d.discount,
             justification: getJustification(agent)
         };
-    })
+    }),
+    summary:{
+        totalKitty: data.siteKitty,
+        totalAllocated: totalAllocated,
+        remainingKitty: totalDiscountRemaining,
+        averageDiscount: Math.round(totalAllocated / discounts.length),
+        maxDiscount: Math.max(...discounts),
+        minDiscount: Math.min(...discounts)
+    }
 };
 
 if (outputFile) {
