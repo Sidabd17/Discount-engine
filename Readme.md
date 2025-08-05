@@ -32,7 +32,7 @@ node index.js input.json output.json
 
 # Run with a custom config file
 node index.js input.json output.json config.json
-
+```
 ---
 
 📂 File Formats
