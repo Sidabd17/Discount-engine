@@ -1,14 +1,40 @@
 const fs = require("fs");
 
 const args = process.argv.slice(2);
-const inputFile = args[0] || "input.json";  // agar user ne pass nahi kiya toh default
-const outputFile = args[1] || null;
+const inputFile = args[0] || "input.json";   // default input.json
+const outputFile = args[1] || null;          // optional output.json
+const configFile = args[2] || "config.json"; // default config.json
 
-const data = JSON.parse(fs.readFileSync(inputFile, "utf-8"));
+let data, config;
+try {
+  data = JSON.parse(fs.readFileSync(inputFile, "utf-8"));
+} catch (err) {
+  console.error(`❌ Error reading/parsing input file: ${inputFile}`);
+  process.exit(1);
+}
+
+try {
+  config = JSON.parse(fs.readFileSync(configFile, "utf-8"));
+} catch (err) {
+  console.error(`❌ Error reading/parsing config file: ${configFile}`);
+  process.exit(1);
+}
+
+// Validate required fields
+if (!data.siteKitty || !Array.isArray(data.salesAgents)) {
+  console.error("❌ Invalid input file: missing siteKitty or salesAgents array");
+  process.exit(1);
+}
+
+// validate weights in 
+if (!config.weights) {
+  console.error("❌ Invalid config file: missing weights object");
+  process.exit(1);
+}
+
 const salesAgents = data.salesAgents;
 let totalDiscount = data.siteKitty;
 
-const config = JSON.parse(fs.readFileSync("config.json", "utf-8"));
 const weights = config.weights;
 
 const performanceWeight = weights.performance;
@@ -20,7 +46,7 @@ const clientsWeight = weights.clients;
 const minPerAgent = data.minPerAgent || totalDiscount / (salesAgents.length * 2);
 const maxPerAgent = data.maxPerAgent || totalDiscount / 2.5;
 
-// step 1: max values nikal lo (normalization ke liye)
+// step 1: max min values for normalization
 let maxSeniorityMonths = 0;
 let maxActiveClients = 0;
 
