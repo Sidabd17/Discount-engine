@@ -1,50 +1,50 @@
 # 🎯 Discount Allocation Engine
 
-This is a **CLI-based tool** that distributes a given *discount kitty* among sales agents fairly, based on their performance, seniority, target achievement, and active clients.  
+This is a **⚡ CLI-based tool** that distributes a given *discount kitty* among sales agents fairly, based on their **performance**, **seniority**, **target achievement**, and **active clients**.  
 
-The tool ensures:
-- Configurable allocation logic (via `config.json` or environment variables)
-- Proper handling of **min/max discount constraints**
-- Meaningful **justifications** for each agent’s discount
-- A **summary report** with stats
+✨ The tool ensures:
+- ⚙️ Configurable allocation logic (via `config.json` or environment variables)  
+- 🚧 Proper handling of **min/max discount constraints**  
+- 📝 Meaningful **justifications** for each agent’s discount  
+- 📊 A **summary report** with key statistics  
 
 ---
 
 ## 🚀 How to Run
 
-### 1. Install Node.js (if not already)
-Make sure you have Node.js installed (`>= v14`).
+### 1️⃣ Install Node.js  
+Make sure you have Node.js installed (`>= v14`).  
+👉 [Download Node.js](https://nodejs.org)
 
-### 2. Project Files
+### 2️⃣ Project Files  
 The tool requires the following files:
 
-- **`input.json`** → Contains site kitty and sales agents data  
-- **`config.json`** → Contains allocation weights and optional min/max constraints  
-- **`output.json`** → (optional) Generated output file with allocations and summary
+- 📥 **`input.json`** → Contains site kitty and sales agents data  
+- ⚙️ **`config.json`** → Contains allocation weights and optional min/max constraints  
+- 📤 **`output.json`** → (optional) Generated output file with allocations and summary  
 
-### 3. Run the CLI
+### 3️⃣ Run the CLI
 ```bash
-# Run and print output to console
+# ▶️ Run and print output to console
 node index.js input.json
 
-# Run and save output to a file
+# 💾 Run and save output to a file
 node index.js input.json output.json
 
-# Run with a custom config file
+# ⚙️ Run with a custom config file
 node index.js input.json output.json config.json
+
 ```
 ---
 
-📂 File Formats
+## 📂 File Formats
 
-🔹 input.json
-json
-Copy
-Edit
+📥 input.json
+```
 {
   "siteKitty": 10000,
   "salesAgents": [
-    {
+ {
       "id": "A1",
       "performanceScore": 80,
       "seniorityMonths": 24,
@@ -55,17 +55,30 @@ Edit
       "id": "A2",
       "performanceScore": 60,
       "seniorityMonths": 12,
-      "targetAchievedPercent": 70,
+      "targetAchievedPercent": 85,
       "activeClients": 6
+    },
+    {
+      "id": "A3",
+      "performanceScore": 90,
+      "seniorityMonths": 16,
+      "targetAchievedPercent": 80,
+      "activeClients": 10
+    },
+    {
+      "id": "A4",
+      "performanceScore": 85,
+      "seniorityMonths": 10,
+      "targetAchievedPercent": 75,
+      "activeClients": 12
     }
   ],
-  "minPerAgent": 500,
-  "maxPerAgent": 5000
+  "minPerAgent": 250,
+  "maxPerAgent": 2000
 }
-🔹 config.json
-json
-Copy
-Edit
+```
+⚙️ config.json
+```
 {
   "weights": {
     "performance": 0.4,
@@ -74,11 +87,10 @@ Edit
     "clients": 0.1
   }
 }
+```
 
-🔹 output.json (generated)
-json
-Copy
-Edit
+📤 output.json (generated)
+```
 {
   "allocations": [
     {
@@ -101,12 +113,12 @@ Edit
     "minDiscount": 4000
   }
 }
-
+```
 ---
 
-⚙️ Logic Breakdown
-Normalization
-
+## ⚙️ Logic Breakdown
+🔹 Normalization
+```
 Performance: score / 100
 
 Target Achievement: percent / 100
@@ -114,27 +126,28 @@ Target Achievement: percent / 100
 Seniority: months / maxMonths
 
 Clients: activeClients / maxClients
+```
 
-Weighted Score Calculation
-
-text
-Copy
-Edit
+🔹 Weighted Score Calculation
+```
 finalScore = 
     (performanceWeight * normalizedPerformance) +
     (seniorityWeight * normalizedSeniority) +
     (targetWeight * normalizedTarget) +
     (clientsWeight * normalizedClients)
-Discount Allocation
+```
 
+🔹 Discount Allocation
+```
 Each agent’s share = (agentScore / totalScore) * totalKitty
 
 Apply minPerAgent and maxPerAgent constraints
 
 Adjust remaining kitty and score dynamically as we go
+```
 
-Justification
-
+🔹 Justification
+```
 Identify the top 2 contributing metrics for each agent
 
 Generate a natural sentence like:
@@ -142,76 +155,87 @@ Generate a natural sentence like:
 "Consistently high performance and long-term contribution"
 
 "Strong target achievement and solid client base"
+```
 
-Summary Report
+🔹 Summary Report
 
+```
 totalKitty
-
 totalAllocated
-
 remainingKitty (if mismatch due to rounding/constraints)
-
 averageDiscount
-
 maxDiscount
-
 minDiscount
+```
 
-🧾 Assumptions
-If minPerAgent or maxPerAgent is not provided in input.json, defaults are applied:
+## 🧾 Assumptions
+- If minPerAgent or maxPerAgent is not provided in input.json, defaults are applied:
 
-minPerAgent = siteKitty / (2 * numberOfAgents)
+- minPerAgent = siteKitty / (2 * numberOfAgents)
 
-maxPerAgent = siteKitty / 2.5
+- maxPerAgent = siteKitty / 2.5
 
-Weights in config.json always sum approximately to 1.0.
+- Weights in config.json always sum approximately to 1.0.
 
-Justifications are kept short and based on the top two contributing metrics.
+- Justifications are kept short and based on the top two contributing metrics.
 
-Rounding differences are adjusted so that the total allocation never exceeds siteKitty.
+- Rounding differences are adjusted so that the total allocation never exceeds siteKitty.
 
-🛠️ How I Solved the Problem
-Understanding Requirements
+---
 
-Input data about sales agents
+## 🛠️ How I Solved the Problem
+## 📝 Understanding Requirements
 
-Allocation must be fair & proportional to multiple factors
+- Input data about sales agents
 
-Constraints (min/max per agent) must be respected
+- Allocation must be fair & proportional to multiple factors
 
-Human-readable justification for every allocation
+- Constraints (min/max per agent) must be respected
 
-Step-by-Step Implementation
+- Human-readable justification for every allocation
 
-Normalized all metrics (0–1 scale)
+### 🪜 Step-by-Step Implementation
 
-Combined them using weighted scoring (from config.json)
+**Step 1** : 📥 Get the necessary data by reading into input file or input.json
 
-Allocated kitty proportionally
+**Step 2** : ✅ Verified the format and required entries from data
 
-Applied min/max constraints dynamically
+**Step 3** : 🔄 Normalized all metrics (0–1 scale)
 
-Generated output JSON with allocations & justifications
+**Step 4** : ⚖️ Combined them using weighted scoring (from config.json)
 
-Added a summary block for quick analysis
+**Step 5** : 💰 Allocated kitty proportionally using adjudged scores and total discount to be allocated
 
-Enhancements Made
+**Step 6** : 🚧 Applied min/max constraints dynamically
 
-CLI support with input/output/config as arguments
+**Step 7** : 📝 Generated output JSON with allocations & justifications
 
-Configurable weights (instead of hardcoded)
+**Step 8** : 📊 Added a summary block for quick analysis
 
-Error handling for invalid/missing files
+## ✨ Enhancements Made
 
-Summary report with statistics
+- 🖥️ **CLI support with input/output/config as arguments**
+
+- ⚙️ **Configurable weights (instead of hardcoded)**
+
+- ❌ **Error handling for invalid/missing files**
+
+- 📊 **Summary report with statistics**
+
+---
 
 📸 Screenshots / Demo (Optional)
-(Add CLI screenshots or JSON output screenshots here if needed)
+
+### 🖥️  Terminal
+<img width="1373" height="307" alt="image" src="https://github.com/user-attachments/assets/c2943b0a-db88-438a-9366-1111851bffd9" />
+
+### 📤 Sample output.json
+<img width="1345" height="803" alt="image" src="https://github.com/user-attachments/assets/333103a8-2090-4600-a16b-bb1c98034f65" />
+
+---
 
 ✅ Conclusion
 This project implements a flexible, production-ready discount allocation engine with configurable logic, fairness, and reporting. It can be extended into a web app or integrated into a larger system.
 
-yaml
-Copy
-Edit
 
+## 🙌 Built with ❤️ by Md Sajid
