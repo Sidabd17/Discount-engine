@@ -6,6 +6,8 @@ const outputFile = args[1] || null;          // optional output.json
 const configFile = args[2] || "config.json"; // default config.json
 
 let data, config;
+
+// Read and parse input and config files and handle errors
 try {
   data = JSON.parse(fs.readFileSync(inputFile, "utf-8"));
 } catch (err) {
@@ -26,7 +28,7 @@ if (!data.siteKitty || !Array.isArray(data.salesAgents)) {
   process.exit(1);
 }
 
-// validate weights in 
+// validate weights in config.json
 if (!config.weights) {
   console.error("❌ Invalid config file: missing weights object");
   process.exit(1);
@@ -37,10 +39,13 @@ let totalDiscount = data.siteKitty;
 
 const weights = config.weights;
 
+// Assign weights for each metric
 const performanceWeight = weights.performance;
 const seniorityWeight = weights.seniority;
 const targetWeight = weights.target;
 const clientsWeight = weights.clients;
+
+
 
 // optional min/max config
 const minPerAgent = data.minPerAgent || totalDiscount / (salesAgents.length * 2);
@@ -55,6 +60,7 @@ for (const agent of salesAgents) {
     maxActiveClients = Math.max(maxActiveClients, agent.activeClients);
 }
 
+
 // step 2: normalize function
 const normaliseSalesAgentsData = (agent) => {
     return {
@@ -66,9 +72,10 @@ const normaliseSalesAgentsData = (agent) => {
     };
 };
 
+// step 3 : create a list of normalized sales agents data
 const normalisedSalesAgentsDataList = salesAgents.map(agent => normaliseSalesAgentsData(agent));
 
-// step 3: score nikalne ka function
+// step 4: Function to calculate individual scores based on weights 
 const individualScores = (agent) => {
     const score = 
         performanceWeight * agent.performanceScore +
@@ -82,15 +89,16 @@ const individualScores = (agent) => {
     };
 };
 
+// step 5: calculate individual scores for each agent
 const individualScoresList = normalisedSalesAgentsDataList.map(agent => individualScores(agent));
 
-// step 4: total score nikal lo
+// step 6: Calculate total score
 let totalScore = 0;
 for (const agent of individualScoresList) {
     totalScore += agent.score;
 }
 
-// step 5: justification function
+// step 7: justification function
 const getJustification = (agent) => {
     const contributions = {
         performance: performanceWeight * agent.performanceScore,
@@ -99,7 +107,7 @@ const getJustification = (agent) => {
         clients: clientsWeight * agent.activeClients
     };
 
-    // top 2 metrics nikal lo
+    // Sort contributions to find top two
     const sorted = Object.entries(contributions).sort((a, b) => b[1] - a[1]);
     const top1 = sorted[0][0];
     const top2 = sorted[1] ? sorted[1][0] : null;
@@ -121,7 +129,7 @@ const getJustification = (agent) => {
 };
 
 
-// step 6: discounts allocate karo (simple loop + min/max + adjust totals)
+// step 8: Allocate discounts based on individual scores and total discount and checking min/max constraints
 let individualDiscounts = [];
 let totalDiscountRemaining = totalDiscount;
 let totalAllocated = 0;
@@ -137,7 +145,7 @@ for (const agent of individualScoresList) {
         finalDiscount = Math.round(rawAlloc);
     }
 
-    // assign kar diya, ab totals update karo
+    // After calculating the final discount, recalculate the remaining discount
     totalDiscountRemaining -= finalDiscount;
     totalScore -= agent.score;
     totalAllocated += finalDiscount;
@@ -150,7 +158,7 @@ for (const agent of individualScoresList) {
 
 const discounts = individualDiscounts.map(a => a.discount);
 
-// step 7: final output
+// step 8: final output with allocations and summary
 const finalOutput = {
     allocations: individualDiscounts.map(d => {
         const agent = normalisedSalesAgentsDataList.find(a => a.id === d.id);
