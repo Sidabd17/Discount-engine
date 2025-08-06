@@ -217,9 +217,9 @@ minDiscount
 
 **Step 4** : ⚖️ Combined them using weighted scoring (from config.json)
 
-**Step 5** : 💰 Allocated kitty proportionally using adjudged scores and total discount to be allocated
+**Step 5** : 💰 First allocated minperAgent to each agent then allocated remaining kitty proportionally using adjudged scores and total remaining discount to be allocated
 
-**Step 6** : 🚧 Applied min/max constraints dynamically
+**Step 6** : 🚧 Applied max constraints dynamically to allocate a fair allocation , adjusted the rounding mismatch to last agent
 
 **Step 7** : 📝 Generated output JSON with allocations & justifications
 
