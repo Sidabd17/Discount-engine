@@ -137,14 +137,27 @@ finalScore =
     (clientsWeight * normalizedClients)
 ```
 
-🔹 Discount Allocation
-```
-Each agent’s share = (agentScore / totalScore) * totalKitty
+### 🔹 Discount Allocation
 
-Apply minPerAgent and maxPerAgent constraints
+1. **Minimum Guarantee Allocation**  
+   - Each agent is first assigned the `minPerAgent`.  
+   - If `siteKitty < minPerAgent * numberOfAgents` → allocation is invalid (error thrown).  
 
-Adjust remaining kitty and score dynamically as we go
-```
+2. **Remaining Kitty Distribution**  
+   - The remaining kitty (`siteKitty - (minPerAgent * numberOfAgents)`) is distributed proportionally based on agents' scores:  
+     ```
+     extraShare = (agentScore / totalScoreRemaining) * remainingKitty
+     ```
+   - Each agent's final allocation = `minPerAgent + extraShare`.  
+
+3. **Max Constraint Check**  
+   - If any agent’s allocation exceeds `maxPerAgent`, it is capped.  
+   - The leftover kitty is then redistributed among the remaining eligible agents.  
+
+4. **Final Adjustment**  
+   - If rounding causes the total allocation ≠ siteKitty,  
+     the difference is adjusted in the last agent’s discount.  
+
 
 🔹 Justification
 ```
