@@ -339,14 +339,12 @@ After installing dependencies via:
 
 ```
 npm install
-
 ```
 
 Run all tests using:
 
 ```
 npm test
-
 ```
 
 ## 📁 Tests Directory Structure
@@ -358,7 +356,6 @@ tests/
 ├── integration.test.js      # End-to-end flow test
 ├── justification.test.js    # Justification sentence generator
 ├── scoring.test.js          # Weighted score calculator
-
 ```
 ---
 
