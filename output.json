@@ -2,22 +2,22 @@
   "allocations": [
     {
       "id": "A1",
-      "assignedDiscount": 2947,
+      "assignedDiscount": 2902,
       "justification": "Consistently long-term contribution and high performance"
     },
     {
       "id": "A2",
-      "assignedDiscount": 1987,
+      "assignedDiscount": 2038,
       "justification": "Consistently high performance and strong target achievement"
     },
     {
       "id": "A3",
-      "assignedDiscount": 2649,
+      "assignedDiscount": 2634,
       "justification": "Consistently high performance and long-term contribution"
     },
     {
       "id": "A4",
-      "assignedDiscount": 2417,
+      "assignedDiscount": 2426,
       "justification": "Consistently high performance and solid client base"
     }
   ],
@@ -26,7 +26,7 @@
     "totalAllocated": 10000,
     "remainingKitty": 0,
     "averageDiscount": 2500,
-    "maxDiscount": 2947,
-    "minDiscount": 1987
+    "maxDiscount": 2902,
+    "minDiscount": 2038
   }
 }

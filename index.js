@@ -1,4 +1,9 @@
 const fs = require("fs");
+const {normalizeAgents} = require("./utils/normalize");
+const { calculateScores } = require("./utils/scoring");
+const { getJustification } = require("./utils/justification");
+const {allocateDiscounts} = require("./utils/allocation");
+const { generateSummary } = require("./utils/summary");
 
 const args = process.argv.slice(2);
 const inputFile = args[0] || "input.json";   // default input.json
@@ -58,129 +63,29 @@ for (const agent of salesAgents) {
   maxActiveClients = Math.max(maxActiveClients, agent.activeClients);
 }
 
-// step 2: normalize function
-const normaliseSalesAgentsData = (agent) => {
-  return {
-    id: agent.id,
-    performanceScore: agent.performanceScore / 100,
-    seniorityMonths: agent.seniorityMonths / (maxSeniorityMonths || 1),
-    targetAchievedPercent: agent.targetAchievedPercent / 100,
-    activeClients: agent.activeClients / (maxActiveClients || 1)
-  };
-};
+// step 2 : get normalized list using normalizeAgents function
+const normalizedList = normalizeAgents(salesAgents, maxSeniorityMonths, maxActiveClients);
 
-// step 3 : create a list of normalized sales agents data
-const normalisedSalesAgentsDataList = salesAgents.map(agent => normaliseSalesAgentsData(agent));
+// step 3 : Calculate scores for each agent
+const individualScoresList = calculateScores(normalizedList, weights);
 
-// step 4: Function to calculate individual scores based on weights 
-const individualScores = (agent) => {
-  const score =
-    performanceWeight * agent.performanceScore +
-    seniorityWeight * agent.seniorityMonths +
-    targetWeight * agent.targetAchievedPercent +
-    clientsWeight * agent.activeClients;
+// step 4 : Allocate the sitekitty to each function 
+const {individualDiscounts,totalAllocated,totalDiscountRemaining} = allocateDiscounts(individualScoresList, totalDiscount, minPerAgent, maxPerAgent);
 
-  return {
-    id: agent.id,
-    score: Math.round(score * 100) / 100
-  };
-};
-
-// step 5: calculate individual scores for each agent
-const individualScoresList = normalisedSalesAgentsDataList.map(agent => individualScores(agent));
-
-// step 6: justification function
-const getJustification = (agent) => {
-  const contributions = {
-    performance: performanceWeight * agent.performanceScore,
-    seniority: seniorityWeight * agent.seniorityMonths,
-    target: targetWeight * agent.targetAchievedPercent,
-    clients: clientsWeight * agent.activeClients
-  };
-
-  // Sort contributions to find top two
-  const sorted = Object.entries(contributions).sort((a, b) => b[1] - a[1]);
-  const top1 = sorted[0][0];
-  const top2 = sorted[1] ? sorted[1][0] : null;
-
-  const phrases = {
-    performance: "high performance",
-    seniority: "long-term contribution",
-    target: "strong target achievement",
-    clients: "solid client base"
-  };
-
-  if (top1 && top2) {
-    return `Consistently ${phrases[top1]} and ${phrases[top2]}`;
-  } else if (top1) {
-    return `Consistently ${phrases[top1]}`;
-  } else {
-    return "Balanced contribution";
-  }
-};
-
-// step 7: Safe Discount Allocation (min first + simple loop)
-let individualDiscounts = [];
-
-// Step 7.1: feasibility check
-if (totalDiscount < minPerAgent * individualScoresList.length) {
-  console.error("❌ Kitty too small to satisfy minPerAgent for all agents");
-  process.exit(1);
-}
-
-// Step 7.2: pre-allocate minimum to everyone
-for (const agent of individualScoresList) {
-  individualDiscounts.push({
-    id: agent.id,
-    discount: minPerAgent
-  });
-}
-let totalAllocated = minPerAgent * individualScoresList.length;
-let totalDiscountRemaining = totalDiscount - totalAllocated;
-
-// Step 7.3: distribute remaining kitty proportionally (simple loop)
-let scoreRemaining = individualScoresList.reduce((sum, a) => sum + a.score, 0);
-
-for (let i = 0; i < individualScoresList.length; i++) {
-  const agent = individualScoresList[i];
-  let alloc = (agent.score / scoreRemaining) * totalDiscountRemaining;
-
-  // cap with max
-  let possible = Math.min(Math.round(alloc), maxPerAgent - individualDiscounts[i].discount);
-
-  individualDiscounts[i].discount += possible;
-  totalAllocated += possible;
-  totalDiscountRemaining -= possible;
-  scoreRemaining -= agent.score;
-}
-
-// Step 7.4: adjustment (if there is any rounding mismatch fix it by adding to the last agent)
-if (totalDiscountRemaining !== 0) {
-  individualDiscounts[individualDiscounts.length - 1].discount += totalDiscountRemaining;
-  totalAllocated += totalDiscountRemaining;
-  totalDiscountRemaining = 0;
-}
-
-// step 8: final output with allocations and summary
+// step 5: final output with allocations and summary
 const discounts = individualDiscounts.map(a => a.discount);
 
+// step 6 : Generate final output along with brief summary
 const finalOutput = {
   allocations: individualDiscounts.map(d => {
-    const agent = normalisedSalesAgentsDataList.find(a => a.id === d.id);
+    const agent = normalizedList.find(a => a.id === d.id);
     return {
       id: d.id,
       assignedDiscount: d.discount,
-      justification: getJustification(agent)
+      justification: getJustification(agent, weights)
     };
   }),
-  summary: {
-    totalKitty: data.siteKitty,
-    totalAllocated: totalAllocated,
-    remainingKitty: totalDiscountRemaining,
-    averageDiscount: Math.round(totalAllocated / discounts.length),
-    maxDiscount: Math.max(...discounts),
-    minDiscount: Math.min(...discounts)
-  }
+  summary: generateSummary(data.siteKitty, totalAllocated, totalDiscountRemaining, discounts)
 };
 
 if (outputFile) {

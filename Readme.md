@@ -19,11 +19,15 @@ Make sure you have Node.js installed (`>= v14`).
 ### 2️⃣ Project Files  
 The tool requires the following files:
 
-- 📥 **`input.json`** → Contains site kitty and sales agents data  
-- ⚙️ **`config.json`** → Contains allocation weights and optional min/max constraints  
-- 📤 **`output.json`** → (optional) Generated output file with allocations and summary  
+- 📥 **input.json** → Contains site kitty and sales agents data  
+- ⚙️ **config.json** → Contains allocation weights and optional min/max constraints  
+- 📤 **output.json** → (optional) Generated output file with allocations and summary  
+
+ℹ️ **Note**: These files are already included in the project, but you can also provide your own files with the **same structure** if needed.
+
 
 ### 3️⃣ Run the CLI
+
 ```bash
 # ▶️ Run and print output to console
 node index.js input.json
@@ -35,6 +39,49 @@ node index.js input.json output.json
 node index.js input.json output.json config.json
 
 ```
+---
+
+## 🗂️ Project Structure
+
+To keep the project **clean**, **scalable**, and **maintainable**, a **modular architecture** has been used.  
+All core functionalities are separated into utility files (`/utils`) to ensure better organization and ease of testing.
+
+Here’s the overall folder structure:
+
+```
+discount-engine/
+│
+├── index.js          # Main CLI entry point
+├── config.json       # Configurable weights and optional constraints
+├── input.json        # Input data for siteKitty & sales agents
+├── output.json       # (Generated) Final result with allocations & summary
+├── package.json      # Project metadata and script entry
+├── Readme.md         # Documentation for understanding and running the project
+│
+├── utils/                  # Contains modularized logic for each step
+│ ├── normalize.js          # Normalizes agent data (0-1 scale)
+│ ├── scoring.js            # Calculates weighted score based on config
+│ ├── allocation.js         # Handles min allocation + proportional distribution + max capping
+│ ├── justification.js      # Creates natural language justification for each agent
+│ ├── summary.js            # Generates final summary stats (total, avg, min, max)
+
+
+```
+
+### 💡 Why Modularization?
+
+- ✅ **Easy to Test & Debug**  
+  Each function (scoring, normalization, etc.) is isolated for better testing.
+
+- ✅ **Improved Readability**  
+  `index.js` becomes a clean entry point instead of handling everything.
+
+- ✅ **Future-Proof**  
+  Easy to extend with new features like unit testing, logging, database integration, or a web UI.
+
+- ✅ **Separation of Concerns**  
+  Each utility file handles only one responsibility — a core principle of good software design.
+
 ---
 
 ## 📂 File Formats
@@ -117,18 +164,24 @@ node index.js input.json output.json config.json
 ---
 
 ## ⚙️ Logic Breakdown
-🔹 Normalization
+###🔹 Normalization
+
+Before comparing sales agents fairly, we normalize all metrics to a scale of 0–1.
+This helps bring different units (like months, %, client count) to a common scale.
+
 ```
-Performance: score / 100
+Performance: score / 100                     # Convert to scale of 0–1
+Target Achievement: percent / 100            # Convert to scale of 0–1
+Seniority: months / maxMonths among agents   # Relative seniority
+Clients: activeClients / maxClients          # Relative client base
 
-Target Achievement: percent / 100
-
-Seniority: months / maxMonths
-
-Clients: activeClients / maxClients
 ```
 
-🔹 Weighted Score Calculation
+###🔹 Weighted Score Calculation
+
+Once normalized, each metric is multiplied with its weight (from config.json) to calculate an agent's final score.
+This score reflects how deserving they are of the discount kitty.
+
 ```
 finalScore = 
     (performanceWeight * normalizedPerformance) +
@@ -172,6 +225,8 @@ Generate a natural sentence like:
 
 🔹 Summary Report
 
+Generated a brief summary about discount allocation and its related stats for each agents
+
 ```
 totalKitty
 totalAllocated
@@ -179,14 +234,15 @@ remainingKitty (if mismatch due to rounding/constraints)
 averageDiscount
 maxDiscount
 minDiscount
+
 ```
 
 ## 🧾 Assumptions
 - If minPerAgent or maxPerAgent is not provided in input.json, defaults are applied:
 
-- minPerAgent = siteKitty / (2 * numberOfAgents)
+- minPerAgent = siteKitty / (10 * numberOfAgents)
 
-- maxPerAgent = siteKitty / 2.5
+- maxPerAgent = siteKitty / 2
 
 - Weights in config.json always sum approximately to 1.0.
 
@@ -237,7 +293,7 @@ minDiscount
 
 ---
 
-📸 Screenshots / Demo (Optional)
+📸 Screenshots / Demo 
 
 ### 🖥️  Terminal
 <img width="1373" height="307" alt="image" src="https://github.com/user-attachments/assets/c2943b0a-db88-438a-9366-1111851bffd9" />
