@@ -16,7 +16,16 @@ This is a **⚡ CLI-based tool** that distributes a given *discount kitty* among
 Make sure you have Node.js installed (`>= v14`).  
 👉 [Download Node.js](https://nodejs.org)
 
-### 2️⃣ Project Files  
+### 2️⃣ Install Dependencies
+Clone the repo and run:
+
+```
+npm install
+
+```
+This will install all required dependencies (like jest for testing).
+
+### 3️⃣ Project Files
 The tool requires the following files:
 
 - 📥 **input.json** → Contains site kitty and sales agents data  
@@ -291,6 +300,66 @@ minDiscount
 
 - 📊 **Summary report with statistics**
 
+---
+
+## 🧪 Testing
+This project includes a full set of integration and logic tests to ensure that the discount allocation engine works reliably across various scenarios.
+
+### ✅ What’s Covered?
+## integration.test.js
+
+- Complete pipeline: from input to final output
+
+- Validates minimum & maximum constraints
+
+- Ensures total kitty is fairly and fully distributed
+
+## allocation.test.js
+
+- Handles min/max allocation constraints
+
+- Confirms proportional distribution of remaining kitty
+
+## scoring.test.js
+
+- Validates weighted score computation
+
+- Checks if each factor contributes correctly based on weights
+
+## justification.test.js
+
+- Ensures top 2 contributing metrics are correctly picked
+
+- Justification message is human-readable and accurate
+
+🔍 These tests go beyond simple units and focus on real use-case behavior and results.
+
+## 🚀 Running the Tests
+After installing dependencies via:
+
+```
+npm install
+
+```
+
+Run all tests using:
+
+```
+npm test
+
+```
+
+## 📁 Tests Directory Structure
+
+```
+tests/
+│
+├── allocation.test.js       # Allocation logic and min/max handling
+├── integration.test.js      # End-to-end flow test
+├── justification.test.js    # Justification sentence generator
+├── scoring.test.js          # Weighted score calculator
+
+```
 ---
 
 📸 Screenshots / Demo 
