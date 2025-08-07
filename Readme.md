@@ -164,7 +164,7 @@ discount-engine/
 ---
 
 ## ⚙️ Logic Breakdown
-###🔹 Normalization
+### 🔹 Normalization
 
 Before comparing sales agents fairly, we normalize all metrics to a scale of 0–1.
 This helps bring different units (like months, %, client count) to a common scale.
@@ -177,7 +177,7 @@ Clients: activeClients / maxClients          # Relative client base
 
 ```
 
-###🔹 Weighted Score Calculation
+### 🔹 Weighted Score Calculation
 
 Once normalized, each metric is multiplied with its weight (from config.json) to calculate an agent's final score.
 This score reflects how deserving they are of the discount kitty.
