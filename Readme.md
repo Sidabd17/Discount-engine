@@ -212,7 +212,7 @@ finalScore =
      the difference is adjusted in the last agent’s discount.  
 
 
-🔹 Justification
+### 🔹 Justification
 ```
 Identify the top 2 contributing metrics for each agent
 
@@ -223,7 +223,7 @@ Generate a natural sentence like:
 "Strong target achievement and solid client base"
 ```
 
-🔹 Summary Report
+### 🔹 Summary Report
 
 Generated a brief summary about discount allocation and its related stats for each agents
 
